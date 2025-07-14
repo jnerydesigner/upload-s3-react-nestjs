@@ -1,0 +1,42 @@
+version: "3.5"
+
+services:
+  db_upload:
+    image: postgres
+    container_name: db_upload
+    volumes:
+      - postgres_upload_s3:/data/postgres
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: root
+      POSTGRES_DB: db_upload
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - postgres_upload_s3
+    restart: unless-stopped
+
+  pgadmin_upload:
+    container_name: pgadmin_upload
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+      - admin_upload_s3:/var/lib/pgadmin
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    networks:
+      - postgres_upload_s3
+    restart: unless-stopped
+
+networks:
+  postgres_upload_s3:
+    driver: bridge
+
+volumes:
+  postgres_upload_s3:
+  admin_upload_s3:
+    driver: local
